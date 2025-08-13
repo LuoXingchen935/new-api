@@ -585,6 +585,22 @@ const EditChannel = (props) => {
     }
     const { success, message } = res.data;
     if (success) {
+      // 如果是编辑模式且设置了余额，则调用API设置余额
+      if (isEdit && localInputs.balance !== undefined && localInputs.balance !== null && localInputs.balance >= 0) {
+        try {
+          const balanceRes = await API.post(`/api/channel/set_balance`, {
+            id: parseInt(channelId),
+            balance: localInputs.balance
+          });
+          const balanceResult = balanceRes.data;
+          if (!balanceResult.success) {
+            showError(t('设置余额失败：') + balanceResult.message);
+          }
+        } catch (error) {
+          showError(t('设置余额时发生错误：') + error.message);
+        }
+      }
+
       if (isEdit) {
         showSuccess(t('渠道更新成功！'));
       } else {
@@ -1423,6 +1439,19 @@ const EditChannel = (props) => {
                     }
                     showClear
                   />
+                  {/* 设置余额输入框 */}
+                  {isEdit && (
+                    <Form.InputNumber
+                      field='balance'
+                      label={t('渠道余额')}
+                      placeholder={t('渠道余额')}
+                      min={0}
+                      step={0.01}
+                      onNumberChange={(value) => handleInputChange('balance', value)}
+                      style={{ width: '100%' }}
+                      extraText={t('设置渠道的余额，单位为美元')}
+                    />
+                  )}
 
                   <Form.TextArea
                     field='setting'

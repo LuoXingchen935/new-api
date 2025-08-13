@@ -574,6 +574,12 @@ const ChannelsTable = () => {
                 });
               },
             },
+            {
+              node: 'item',
+              name: t('设置余额'),
+              type: 'tertiary',
+              onClick: () => handleSetBalance(record),
+            },
           ];
 
           return (
@@ -739,6 +745,9 @@ const ChannelsTable = () => {
   const [batchSetTagValue, setBatchSetTagValue] = useState('');
   const [showModelTestModal, setShowModelTestModal] = useState(false);
   const [currentTestChannel, setCurrentTestChannel] = useState(null);
+  const [showSetBalanceModal, setShowSetBalanceModal] = useState(false);
+  const [currentChannel, setCurrentChannel] = useState(null);
+  const [balanceInput, setBalanceInput] = useState('');
   const [modelSearchKeyword, setModelSearchKeyword] = useState('');
   const [modelTestResults, setModelTestResults] = useState({});
   const [testingModels, setTestingModels] = useState(new Set());
@@ -1523,6 +1532,39 @@ const ChannelsTable = () => {
       showInfo(
         t('通道 ${name} 余额更新成功！').replace('${name}', record.name),
       );
+
+  const setChannelBalance = async (channel, balance) => {
+    const res = await API.post(`/api/channel/set_balance`, { id: channel.id, balance });
+    const { success, message } = res.data;
+    if (success) {
+      updateChannelProperty(channel.id, (ch) => {
+        ch.balance = balance;
+        ch.balance_updated_time = Date.now() / 1000;
+      });
+      showSuccess(t('渠道 ${name} 余额设置成功！').replace('${name}', channel.name));
+    } else {
+      showError(message);
+    }
+  };
+
+  const handleSetBalance = (channel) => {
+    setCurrentChannel(channel);
+    setBalanceInput(channel.balance?.toString() || '');
+    setShowSetBalanceModal(true);
+  };
+
+  const submitSetBalance = async () => {
+    if (!currentChannel) return;
+    const balance = parseFloat(balanceInput);
+    if (isNaN(balance)) {
+      showError(t('请输入有效的余额数值'));
+      return;
+    }
+    await setChannelBalance(currentChannel, balance);
+    setShowSetBalanceModal(false);
+    setBalanceInput('');
+    setCurrentChannel(null);
+  };
     } else {
       showError(message);
     }
@@ -2204,6 +2246,32 @@ const ChannelsTable = () => {
             </div>
           )}
         </div>
+      </Modal>
+      {/* 设置余额模态框 */}
+      <Modal
+        title={t('设置渠道余额')}
+        visible={showSetBalanceModal}
+        onOk={submitSetBalance}
+        onCancel={() => {
+          setShowSetBalanceModal(false);
+          setBalanceInput('');
+          setCurrentChannel(null);
+        }}
+        maskClosable={false}
+        centered={true}
+        size="small"
+        className="!rounded-lg"
+      >
+        <div className="mb-5">
+          <Typography.Text>{t('请为渠道')} {currentChannel?.name} {t('设置余额')}</Typography.Text>
+        </div>
+        <Input
+          placeholder={t('请输入余额')}
+          value={balanceInput}
+          onChange={(v) => setBalanceInput(v)}
+          type="number"
+          step="0.01"
+        />
       </Modal>
     </>
   );

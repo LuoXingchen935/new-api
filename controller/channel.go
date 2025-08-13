@@ -914,3 +914,29 @@ func CopyChannel(c *gin.Context) {
 	// success
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": gin.H{"id": clone.Id}})
 }
+
+func SetChannelBalance(c *gin.Context) {
+	var req struct {
+		ID      int     `json:"id" binding:"required"`
+		Balance float64 `json:"balance" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	channel, err := model.GetChannelById(req.ID, false)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	channel.UpdateBalance(req.Balance)
+	model.InitChannelCache()
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "余额更新成功",
+	})
+}
