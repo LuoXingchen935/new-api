@@ -8,9 +8,7 @@ COPY web/package.json web/bun.lock ./
 RUN bun install
 COPY web/ .
 # 设置构建环境变量并执行构建
-ENV DISABLE_ESLINT_PLUGIN=true \
-    VITE_REACT_APP_VERSION=$(cat VERSION)
-RUN bun run build
+RUN VITE_REACT_APP_VERSION=$(cat VERSION) DISABLE_ESLINT_PLUGIN=true bun run build
 
 FROM golang:alpine AS builder2
 
@@ -25,7 +23,7 @@ RUN go mod download
 
 COPY . .
 COPY --from=builder /build/dist ./web/dist
-RUN go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)'" -o one-api
+RUN VERSION=$(cat VERSION) && go build -ldflags "-s -w -X 'one-api/common.Version=$VERSION'" -o one-api
 
 FROM alpine
 
