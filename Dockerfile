@@ -1,12 +1,16 @@
-FROM oven/bun:latest AS builder
+FROM oven/bun:1.0.21 AS builder
 
 WORKDIR /build
-COPY web/package.json .
-COPY web/bun.lock .
+# 首先复制 VERSION 文件
+COPY VERSION .
+# 然后复制前端项目相关文件
+COPY web/package.json web/bun.lock ./
 RUN bun install
-COPY ./web .
-COPY ./VERSION .
-RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
+COPY web/ .
+# 设置构建环境变量并执行构建
+ENV DISABLE_ESLINT_PLUGIN=true \
+    VITE_REACT_APP_VERSION=$(cat VERSION)
+RUN bun run build
 
 FROM golang:alpine AS builder2
 
