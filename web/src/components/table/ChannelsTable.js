@@ -1532,6 +1532,10 @@ const ChannelsTable = () => {
       showInfo(
         t('通道 ${name} 余额更新成功！').replace('${name}', record.name),
       );
+    } else {
+      showError(message);
+    }
+  };
 
   const setChannelBalance = async (channel, balance) => {
     const res = await API.post(`/api/channel/set_balance`, { id: channel.id, balance });
