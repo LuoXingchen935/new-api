@@ -1,4 +1,4 @@
-FROM oven/bun:1.0.21 AS builder
+FROM oven/bun:latest AS builder
 
 WORKDIR /build
 # 首先复制 VERSION 文件
