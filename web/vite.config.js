@@ -1,11 +1,14 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig, transformWithEsbuild } from 'vite';
 import pkg from '@douyinfe/vite-plugin-semi';
+import eslint from '@nabla/vite-plugin-eslint';
 const { vitePluginSemi } = pkg;
+const disableESLintPlugin = process.env.DISABLE_ESLINT_PLUGIN === 'true';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    !disableESLintPlugin && eslint(),
     {
       name: 'treat-js-files-as-jsx',
       async transform(code, id) {
@@ -25,7 +28,7 @@ export default defineConfig({
     vitePluginSemi({
       cssLayer: true
     })
-  ],
+  ].filter(Boolean),
   optimizeDeps: {
     force: true,
     esbuildOptions: {
