@@ -151,6 +151,13 @@ func CompleteLoginVerification(token string, verification *LoginVerification, me
 	if verification == nil || verification.Flow == nil || verification.State == nil {
 		return nil, nil, model.ErrAuthFlowInvalid
 	}
+	// Enforce the admin IP allowlist on the secondary-factor completion path as
+	// well; this bypasses createLoginSession and would otherwise be a gap.
+	if verification.State.Role >= common.RoleAdminUser {
+		if err := common.CheckAdminClientIP(ip); err != nil {
+			return nil, nil, err
+		}
+	}
 	session, refreshSecret, err := newLoginSession(verification.State.UserID, verification.payload.AuthVersion, verification.payload.LoginMethod, ip, userAgent)
 	if err != nil {
 		return nil, nil, err

@@ -378,6 +378,7 @@
     "Admin permissions updated": "已更新管理員權限",
     "Administer user accounts and roles.": "管理用戶用戶和角色。",
     "Administration": "管理",
+    "Administrator access is not allowed from this IP address": "目前 IP 位址不允許以管理員身分存取",
     "Administrator account": "管理員用戶",
     "Administrator completed the order, amount added: {{quota}}, payment amount: {{amount}}": "管理員補單成功，儲值額度：{{quota}}，支付金額：{{amount}}",
     "Administrator reset the quota of subscription plan {{plan_title}} (ID: {{plan_id}})": "管理員重設訂閱方案 {{plan_title}}（ID: {{plan_id}}）額度",

@@ -115,6 +115,9 @@ func writeSecurityOperationError(c *gin.Context, err error) {
 	case errors.Is(err, model.ErrUserSessionInvalid), errors.Is(err, model.ErrUserSessionInactive):
 		writeAuthSessionError(c, service.ErrAuthTokenInvalid)
 		return
+	case errors.Is(err, common.ErrAdminIPNotAllowed):
+		status = http.StatusForbidden
+		code, message = "ADMIN_IP_NOT_ALLOWED", "Administrator access is not allowed from this IP address"
 	default:
 		c.Set("security_error_code", "AUTH_INTERNAL_ERROR")
 		writeAuthSessionError(c, err)

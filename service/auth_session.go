@@ -68,6 +68,14 @@ func createLoginSession(userID int, expectedAuthVersion int64, loginMethod, ip, 
 	if user.Status != common.UserStatusEnabled || user.AuthVersion <= 0 {
 		return nil, ErrLoginSessionInvalid
 	}
+	// The admin IP allowlist is enforced at every session issuance so no login
+	// path (password, passkey, OAuth, 2FA completion) can hand a session to an
+	// admin-role user from a disallowed address.
+	if user.Role >= common.RoleAdminUser {
+		if err := common.CheckAdminClientIP(ip); err != nil {
+			return nil, err
+		}
+	}
 	if expectedAuthVersion > 0 && user.AuthVersion != expectedAuthVersion {
 		return nil, ErrLoginSessionRevoked
 	}
@@ -261,6 +269,13 @@ func RefreshLoginSession(rawRefreshToken, expectedSID, ip, userAgent string) (*A
 		currentUser.Status != common.UserStatusEnabled || currentUser.AuthVersion != session.UserAuthVersion {
 		_, _ = model.RevokeUserSession(session.UserID, session.SID, "user_security_changed")
 		return nil, nil, ErrLoginSessionRevoked
+	}
+	// Do not let an admin-role user rotate a session from an IP outside the
+	// allowlist; the restriction applies for the whole session lifetime.
+	if userCache.Role >= common.RoleAdminUser {
+		if err := common.CheckAdminClientIP(ip); err != nil {
+			return nil, nil, err
+		}
 	}
 	nextSecret := deriveNextRefreshSecret(sid, secret)
 	rotated, err := model.RotateUserSessionRefresh(session.UserID, sid, hashRefreshSecret(secret), hashRefreshSecret(nextSecret), time.Now().Unix(), RefreshReplayWindow)
@@ -476,6 +491,8 @@ func authSessionErrorCode(err error) (int, string) {
 		return http.StatusUnauthorized, "AUTH_SESSION_REVOKED"
 	case errors.Is(err, ErrRefreshTokenInvalid), errors.Is(err, ErrAuthTokenInvalid):
 		return http.StatusUnauthorized, "AUTH_UNAUTHORIZED"
+	case errors.Is(err, common.ErrAdminIPNotAllowed):
+		return http.StatusForbidden, "ADMIN_IP_NOT_ALLOWED"
 	default:
 		return http.StatusInternalServerError, "AUTH_INTERNAL_ERROR"
 	}

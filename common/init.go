@@ -68,6 +68,12 @@ func InitEnv() {
 		log.Fatal(err)
 	}
 	initUserSessionSettings()
+	if err := InitAdminIPAllowlist(); err != nil {
+		log.Fatal(err)
+	}
+	if AdminIPAllowlistEnabled() {
+		log.Println(LogText("Admin IP allowlist is active with %d entries; administrator login and admin APIs are restricted to these IPs.", AdminIPAllowlistCount()))
+	}
 	if os.Getenv("SQLITE_PATH") != "" {
 		SQLitePath = os.Getenv("SQLITE_PATH")
 	}

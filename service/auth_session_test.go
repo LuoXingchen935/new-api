@@ -442,3 +442,50 @@ func TestUserAuthVersionInvalidatesExistingSession(t *testing.T) {
 	_, err = CreateLoginSessionAtAuthVersion(user.Id, identity.UserAuthVersion, "2fa", "127.0.0.1", "test-agent")
 	assert.ErrorIs(t, err, ErrLoginSessionRevoked, "a pending 2FA flow must not survive an auth-version change")
 }
+
+func TestAdminIPAllowlistRestrictsSessionIssuanceAndRefresh(t *testing.T) {
+	useTestSessionSecret(t)
+	user := setupAuthSessionTestDB(t)
+	require.NoError(t, model.DB.Model(user).Update("role", common.RoleAdminUser).Error)
+
+	// Configure a restrictive admin allowlist through the same entry point the
+	// server uses at startup, and always restore the previous state.
+	t.Setenv("ADMIN_ALLOWED_IPS", "203.0.113.10")
+	t.Setenv("ADMIN_ALLOWED_IPS_FILE", "")
+	require.NoError(t, common.InitAdminIPAllowlist())
+	t.Cleanup(func() {
+		t.Setenv("ADMIN_ALLOWED_IPS", "")
+		t.Setenv("ADMIN_ALLOWED_IPS_FILE", "")
+		require.NoError(t, common.InitAdminIPAllowlist())
+	})
+
+	// A disallowed IP is rejected at issuance for an admin-role user.
+	_, err := CreateLoginSession(user.Id, "password", "198.51.100.7", "test-agent")
+	assert.ErrorIs(t, err, common.ErrAdminIPNotAllowed)
+
+	// The allowlisted IP issues normally.
+	bundle, err := CreateLoginSession(user.Id, "password", "203.0.113.10", "test-agent")
+	require.NoError(t, err)
+
+	// Refreshing the session from a disallowed IP is also rejected.
+	_, _, err = RefreshLoginSession(bundle.RefreshToken, bundle.Session.SID, "198.51.100.7", "test-agent")
+	assert.ErrorIs(t, err, common.ErrAdminIPNotAllowed)
+}
+
+func TestAdminIPAllowlistDoesNotAffectCommonUsers(t *testing.T) {
+	useTestSessionSecret(t)
+	user := setupAuthSessionTestDB(t) // common-role user
+
+	t.Setenv("ADMIN_ALLOWED_IPS", "203.0.113.10")
+	t.Setenv("ADMIN_ALLOWED_IPS_FILE", "")
+	require.NoError(t, common.InitAdminIPAllowlist())
+	t.Cleanup(func() {
+		t.Setenv("ADMIN_ALLOWED_IPS", "")
+		t.Setenv("ADMIN_ALLOWED_IPS_FILE", "")
+		require.NoError(t, common.InitAdminIPAllowlist())
+	})
+
+	// Ordinary users keep logging in from any IP, including the login page.
+	_, err := CreateLoginSession(user.Id, "password", "198.51.100.7", "test-agent")
+	require.NoError(t, err)
+}

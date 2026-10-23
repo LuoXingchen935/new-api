@@ -378,6 +378,7 @@
     "Admin permissions updated": "Đã cập nhật quyền quản trị viên",
     "Administer user accounts and roles.": "Quản lý tài khoản người dùng và vai trò.",
     "Administration": "Quản trị",
+    "Administrator access is not allowed from this IP address": "Quyền truy cập quản trị viên không được phép từ địa chỉ IP này",
     "Administrator account": "Tài khoản quản trị viên",
     "Administrator completed the order, amount added: {{quota}}, payment amount: {{amount}}": "Quản trị viên đã hoàn tất đơn hàng, số tiền đã nạp: {{quota}}, số tiền thanh toán: {{amount}}",
     "Administrator reset the quota of subscription plan {{plan_title}} (ID: {{plan_id}})": "Quản trị viên đã đặt lại hạn mức của gói đăng ký {{plan_title}} (ID: {{plan_id}})",

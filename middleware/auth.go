@@ -66,6 +66,12 @@ func authHelper(c *gin.Context, minRole int) {
 		abortWithWebMessage(c, http.StatusForbidden, "AUTH_INSUFFICIENT_PRIVILEGE", common.NewMessage("Unauthorized, insufficient privileges"))
 		return
 	}
+	if user.Role >= common.RoleAdminUser {
+		if err := common.CheckAdminClientIP(c.ClientIP()); err != nil {
+			abortWithWebMessage(c, http.StatusForbidden, "ADMIN_IP_NOT_ALLOWED", common.NewMessage("Administrator access is not allowed from this IP address"))
+			return
+		}
+	}
 	var lookup *accessTokenLookup
 	if useAccessToken {
 		lookup = requestAccessTokenLookup(c)

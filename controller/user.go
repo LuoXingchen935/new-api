@@ -148,6 +148,17 @@ func recordLoginAudit(user *model.User, c *gin.Context) {
 // pending legacy GitHub binding rewrite travels inside the challenge and is
 // written only when the verification completes.
 func setupLogin(user *model.User, migration *service.LegacyGitHubMigration, c *gin.Context) {
+	// Reject admin-role logins from a disallowed IP before issuing the 2FA
+	// challenge so operators are not walked through a factor ceremony that
+	// cannot complete. Credentials are already verified at this point, so this
+	// does not aid account enumeration. Session issuance re-checks as the
+	// authoritative gate.
+	if user != nil && user.Role >= common.RoleAdminUser {
+		if err := common.CheckAdminClientIP(c.ClientIP()); err != nil {
+			writeSecurityOperationError(c, err)
+			return
+		}
+	}
 	challenge, err := service.StartLoginVerification(user, loginMethodFromContext(c), migration)
 	if err != nil {
 		writeSecurityOperationError(c, err)

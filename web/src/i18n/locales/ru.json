@@ -378,6 +378,7 @@
     "Admin permissions updated": "Права администратора обновлены",
     "Administer user accounts and roles.": "Управление учетными записями пользователей и ролями.",
     "Administration": "Администрирование",
+    "Administrator access is not allowed from this IP address": "Доступ администратора с этого IP-адреса запрещён",
     "Administrator account": "Учетная запись администратора",
     "Administrator completed the order, amount added: {{quota}}, payment amount: {{amount}}": "Администратор завершил заказ, зачислено: {{quota}}, сумма оплаты: {{amount}}",
     "Administrator reset the quota of subscription plan {{plan_title}} (ID: {{plan_id}})": "Администратор сбросил квоту тарифа подписки {{plan_title}} (ID: {{plan_id}})",

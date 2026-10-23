@@ -378,6 +378,7 @@
     "Admin permissions updated": "Autorisations administrateur mises à jour",
     "Administer user accounts and roles.": "Gérer les comptes d'utilisateurs et les rôles.",
     "Administration": "Administration",
+    "Administrator access is not allowed from this IP address": "L'accès administrateur n'est pas autorisé depuis cette adresse IP",
     "Administrator account": "Compte administrateur",
     "Administrator completed the order, amount added: {{quota}}, payment amount: {{amount}}": "Commande complétée par l'administrateur, montant ajouté : {{quota}}, montant payé : {{amount}}",
     "Administrator reset the quota of subscription plan {{plan_title}} (ID: {{plan_id}})": "L'administrateur a réinitialisé le quota de l'offre d'abonnement {{plan_title}} (ID : {{plan_id}})",
